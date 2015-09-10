@@ -1,0 +1,1 @@
+yum install libjpeg-devel giflib-devel libpng-devel libXpm-devel gettext-devel gd-devel freetype-devel zlib-devel tinyxml-devel t1lib-devel openssl-devel libiconv-devel

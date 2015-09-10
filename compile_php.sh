@@ -8,7 +8,7 @@ if [[ $# -lt 1 ]];then
     echo "Usage: `basename $0` -s SourceDir -d DestinationDir [-a /path/to/apxs]"
 fi
 
-while getopts "s:d:a:h" optname
+while getopts "s:d:a:e:h" optname
     do
         case $optname in
             s)
@@ -19,6 +19,13 @@ while getopts "s:d:a:h" optname
                 ;;
             a)
                 ApxsPath="$OPTARG"
+                ;;
+            e)
+                if [ "$OPTARG" == "p" ] || [ "$OPTARG" == "product" ] || [ "$OPTARG" == "production" ]; then
+                    EnvName="production"
+                else
+                    EnvName="development"
+                fi
                 ;;
             h)
                 echo "Usage: `basename $0` -s SourceDir -d DestinationDir [-a /path/to/apxs]"
@@ -43,6 +50,7 @@ fi
 if [ -x $SrcDir ] && [ -w $DesPDir ]; then
     # executable source dir and writable destination dir
     cd $SrcDir
+    sudo make clean
     if [ ! -f $DesDir/bin/php ] && [ ! -f $desDir/bin/phpize ] && [ ! -f $DesDir/bin/php-config ]; then
         sudo ./buildconf --force
         # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql 
@@ -53,7 +61,6 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
             echo "without apxs2"
             sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd
         fi
-        sudo make clean
         if [ ! -f $SrcDir/Makefile ]; then
             echo "Makefile is not found"
             exit 1
@@ -72,13 +79,13 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 echo $ExtName
                 cd $SrcDir/ext/$ExtName
                 sudo make clean
-                # there is no config.m4 but config0.m4 in ext/zlib dir
-                if [ $ExtName == "zlib" ] && [ -f $SrcDir/ext/zlib/config0.m4 ] && [ ! -f $SrcDir/ext/zlib/config.m4 ]; then
-                    sudo cp $SrcDir/ext/zlib/config0.m4 $SrcDir/ext/zlib/config.m4
+                # there is no config.m4 but config0.m4 in openssl,zlib extension dir
+                if [ -f $SrcDir/ext/zlib/config0.m4 ] && [ ! -f $SrcDir/ext/zlib/config.m4 ]; then
+                    sudo cp $SrcDir/ext/$ExtName/config0.m4 $SrcDir/ext/$ExtName/config.m4
                 fi
                 sudo $DesDir/bin/phpize
                 if [ $ExtName == "gd" ]; then
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir
+                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf --with-xpm-dir
                 else
                     sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config
                 fi
