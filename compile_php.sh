@@ -48,10 +48,10 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
         # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql 
         if [ -f $ApxsPath ] && [ "$WithApxs" == "$ApxsPath" ]; then
             echo "with apxs2"
-            sudo ./configure --prefix=$DesDir --enable-fpm --enable-mysqlnd --with-apxs2=$ApxsPath
+            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-apxs2=$ApxsPath
         else
             echo "without apxs2"
-            sudo ./configure --prefix=$DesDir --enable-fpm --enable-mysqlnd
+            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd
         fi
         sudo make clean
         if [ ! -f $SrcDir/Makefile ]; then
