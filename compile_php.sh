@@ -47,6 +47,7 @@ if [ ! -d $DesPDir ]; then
     echo "$DesPDir is not a dir, now try to create the dir(s)"
     sudo mkdir -p $DesPDir
 fi
+
 if [ -x $SrcDir ] && [ -w $DesPDir ]; then
     # executable source dir and writable destination dir
     cd $SrcDir
@@ -80,7 +81,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 cd $SrcDir/ext/$ExtName
                 sudo make clean
                 # there is no config.m4 but config0.m4 in openssl,zlib extension dir
-                if [ -f $SrcDir/ext/zlib/config0.m4 ] && [ ! -f $SrcDir/ext/zlib/config.m4 ]; then
+                if [ -f "${SrcDir}/ext/${ExtName}/config0.m4" ] && [ ! -f "${SrcDir}/ext/${ExtName}/config.m4" ]; then
                     sudo cp $SrcDir/ext/$ExtName/config0.m4 $SrcDir/ext/$ExtName/config.m4
                 fi
                 sudo $DesDir/bin/phpize
@@ -95,6 +96,29 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 fi
             #fi
         done
+        
+        if [ -x "${DesDir}/bin/php" ] && [ -d "${DesDir}/lib/php/extensions" ]; then
+            ExtDirName=`ls ${DesDir}/lib/php/extensions`
+            ExtDirPath="${DesDir}/lib/php/extensions/${ExtDirName}/"
+            if [ -d "${ExtDirPath}" ]; then
+                ExtsBuilt=`ls ${ExtDirPath}`
+                PHPExtsIni="${DesDir}/lib/phpexts.ini"
+                echo '' > "${PHPExtsIni}"
+                for s in ${ExtsBuilt[@]}; do
+                    IsExtLoaded=`${DesDir}/bin/php -m|grep -i ${s%.*}`
+                    if [ -z "${IsExtLoaded}" ]; then
+                        echo "extension=${s};\r\n" >> "${PHPExtsIni}"
+                    else
+                        echo "${s} is loaded..."
+                    fi
+                done
+            else
+                echo "${ExtDirPath} is not a directory."
+            fi
+        else
+            echo "${DesDir}/bin/php not found or is not executable, or ${DesDir}/lib/php/extensions is not exists."
+        fi
+
     else
         echo "can not find $DesDir/bin/phpize or $DesDir/bin/php-config or dir $SrcDir/ext"
     fi
