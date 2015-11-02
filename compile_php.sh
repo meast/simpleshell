@@ -66,7 +66,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
             echo "Makefile is not found"
             exit 1
         fi
-        sudo make && sudo make install
+        sudo make && sudo make install && sudo make clean
         if [ ! -f $Desc/lib/php.ini ]; then
             sudo cp "$SrcDir/php.ini-$EnvName" $DesDir/lib/php.ini
         fi
@@ -107,7 +107,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 for s in ${ExtsBuilt[@]}; do
                     IsExtLoaded=`${DesDir}/bin/php -m|grep -i ${s%.*}`
                     if [ -z "${IsExtLoaded}" ]; then
-                        echo "extension=${s};\r\n" >> "${PHPExtsIni}"
+                        echo ";extension=${s} " >> "${PHPExtsIni}"
                     else
                         echo "${s} is loaded..."
                     fi
