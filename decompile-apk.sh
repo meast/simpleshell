@@ -6,7 +6,8 @@
 APKToolPath=/disk2/server/android/apktool/apktool
 # dex2jar from http://sourceforge.net/projects/dex2jar/
 Dex2JARPath=/disk2/server/android/dex2jar-2.0/d2j-dex2jar.sh
-#
+# jd-cli from https://github.com/kwart/jd-cmd/releases (or you can decompile jar file to java source by using jd-gui )
+JDCLIPath=/disk2/server/android/jd-cli/jd-cli
 
 if [ -z $@ ]; then echo "Usage: decompile-apk.sh /path/to/app.apk"; exit; fi
 if [ ! -f $@ ]; then echo "$@ is not a file..."; exit; fi
@@ -19,6 +20,7 @@ APKFileName=${FilePath##*/}
 SaveDEXDir=${FilePath}/${APKFileName}_dex
 SaveJARDir=${FilePath}/${APKFileName}_jar
 SaveSmaliDir=${FilePath}/${APKFileName}_smali
+SaveJARSrcDir=${FilePath}/${APKFileName}_jar_src
 echo Running...
 ${APKToolPath} d $@ -o "${SaveSmaliDir}"
 echo Inflating...
@@ -37,6 +39,12 @@ for DEXFile in ${ArrDEXFiles}; do
     echo "Decompiling ${DEXFileName} ";
     # dex2jar
     ${Dex2JARPath} "${SaveDEXDir}/${DEXFileName}" -f -o "${SaveJARFile}";
+    if [ -f "${SaveJARFile}" ]; then
+        if [ -x "${JDCLIPath}" ]; then
+            echo "${SaveJARFile} ..."
+            ${JDCLIPath} ${SaveJARFile} -od ${SaveJARSrcDir} -oc
+        fi
+    fi
 done
 CountJARFiles=`ls -l ${SaveJARDir}/*.jar|grep "^-"|wc -l`
 echo "Finished: ${CountJARFiles} jar file(s) in ${SaveJARDir}"

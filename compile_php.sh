@@ -105,9 +105,9 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 PHPExtsIni="${DesDir}/lib/phpexts.ini"
                 echo '' > "${PHPExtsIni}"
                 for s in ${ExtsBuilt[@]}; do
-                    IsExtLoaded=`${DesDir}/bin/php -m|grep -i ${s%.*}`
+                    IsExtLoaded=`${DesDir}/bin/php -m|grep -i ^${s%.*}$`
                     if [ -z "${IsExtLoaded}" ]; then
-                        echo ";extension=${s} " >> "${PHPExtsIni}"
+                        echo ";extension=${s}" >> "${PHPExtsIni}"
                     else
                         echo "${s} is loaded..."
                     fi
