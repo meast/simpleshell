@@ -70,6 +70,9 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
         if [ ! -f $Desc/lib/php.ini ]; then
             sudo cp "$SrcDir/php.ini-$EnvName" $DesDir/lib/php.ini
         fi
+        if [ ! -f "$DesDir/etc/php-fpm.conf" ] && [ -f "$DesDir/etc/php-fpm.conf.default" ]; then
+            sudo cp "$DesDir/etc/php-fpm.conf" "$DesDir/etc/php-fpm.conf.default"
+        fi
     fi
     if [ -f $DesDir/bin/phpize ] && [ -f $DesDir/bin/php-config ] && [ -d $SrcDir/ext ]; then
 
@@ -86,7 +89,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                 fi
                 sudo $DesDir/bin/phpize
                 if [ $ExtName == "gd" ]; then
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf --with-xpm-dir
+                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf 
                 else
                     sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config
                 fi
@@ -101,13 +104,19 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
             ExtDirName=`ls ${DesDir}/lib/php/extensions`
             ExtDirPath="${DesDir}/lib/php/extensions/${ExtDirName}/"
             if [ -d "${ExtDirPath}" ]; then
-                ExtsBuilt=`ls ${ExtDirPath}`
+                ExtsBuilt=`ls ${ExtDirPath}*.so`
                 PHPExtsIni="${DesDir}/lib/phpexts.ini"
                 echo '' > "${PHPExtsIni}"
                 for s in ${ExtsBuilt[@]}; do
-                    IsExtLoaded=`${DesDir}/bin/php -m|grep -i ^${s%.*}$`
+                    ExtFileName=${s##*/}
+                    ExtFileName=${ExtFileName%.*}
+                    IsExtLoaded=`${DesDir}/bin/php -m|grep -i ^${ExtFileName}$`
                     if [ -z "${IsExtLoaded}" ]; then
-                        echo ";extension=${s}" >> "${PHPExtsIni}"
+                        if [ "${ExtFileName}"="opcode" ] || [ "${ExtFileName}"="xdebug" ]; then
+                            echo ";zend_extension=${ExtFileName}.so" >> "${PHPExtsIni}"
+                        else
+                            echo ";extension=${ExtFileName}.so" >> "${PHPExtsIni}"
+                        fi
                     else
                         echo "${s} is loaded..."
                     fi
