@@ -112,7 +112,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                     ExtFileName=${ExtFileName%.*}
                     IsExtLoaded=`${DesDir}/bin/php -m|grep -i ^${ExtFileName}$`
                     if [ -z "${IsExtLoaded}" ]; then
-                        if [ "${ExtFileName}"="opcode" ] || [ "${ExtFileName}"="xdebug" ]; then
+                        if [ "${ExtFileName}" = "opcache" ] || [ "${ExtFileName}" = "xdebug" ]; then
                             echo ";zend_extension=${ExtFileName}.so" >> "${PHPExtsIni}"
                         else
                             echo ";extension=${ExtFileName}.so" >> "${PHPExtsIni}"
