@@ -24,7 +24,7 @@ SaveJARSrcDir=${FilePath}/${APKFileName}_jar_src
 echo Running...
 ${APKToolPath} d $@ -o "${SaveSmaliDir}"
 echo Inflating...
-if [ ! -d "${SaveDEXDir}"]; then mkdir -p "${SaveDEXDir}"; fi
+if [ ! -d "${SaveDEXDir}" ]; then mkdir -p "${SaveDEXDir}"; fi
 # there might be many *.dex(classes.dex, classes2.dex,...) files in the apk.
 DEXFiles=`unzip -v $@ |egrep 'classes*'|awk '{print $NF}'`
 # unzip the .dex files
