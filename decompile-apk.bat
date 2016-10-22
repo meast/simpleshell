@@ -16,6 +16,7 @@ if "%1" == "" (
 	echo Usage: decompile-apk.bat /path/to/app.apk
 	goto end
 	) else echo Running
+
 if exist %APKToolPath% (
 	echo using %APKToolPath%
 	) else (
@@ -45,26 +46,23 @@ if exist %FullPath% (
 	goto end
 	)
 
+if exist %SEVENTZIPPath% (
+	echo using %SEVENTZIPPath%
+	) else (
+	echo %SEVENTZIPPath% not exist...
+	goto end
+	)
+
 set ParentPath=%~dp1
 set ApkName=%~n1
 set DesPath=%ParentPath%/%ApkName%_apk_extract
 
-set ZipDir=%DesPath%/%ApkName%_zip
 set ExtractDir=%DesPath%/%ApkName%_extract
 set DEXDir=%DesPath%/%ApkName%_dex
 set JARDir=%DesPath%/%ApkName%_jar
 set SMALIDir=%DesPath%/%ApkName%_smali
 set JARSRCDir=%DesPath%/%ApkName%_jarsrc
-set ZipFile=%ZipDir%/%ApkName%.zip
 
-if exist %ZipDir% (
-	echo Saving to %ZipDir%
-	) else (
-	echo Creating dir %ZipDir%
-	mkdir "%ZipDir%"
-	)
-
-xcopy /f /y "%FullPath%" "%ZipFile%"
 
 if exist %DesPath% (
 	echo Saving to %DesPath%
@@ -102,9 +100,8 @@ if exist %JARSRCDir% (
 	)
 
 %JAVABINPath% -jar %APKToolPath% d %FullPath% -o "%SMALIDir%" -f
-
-%SEVENTZIPPath% x "%ZipFile%" -o"%ExtractDir%/" -y
-%SEVENTZIPPath% x "%ZipFile%" -o"%DEXDir%/" *.dex -y
+%SEVENTZIPPath% x "%FullPath%" -o"%ExtractDir%/" -y
+%SEVENTZIPPath% x "%FullPath%" -o"%DEXDir%/" *.dex -y
 
 for /f "delims=" %%i in ('dir /b/a-d "%DEXDir%/"') do (
 	@rem dex2jar
