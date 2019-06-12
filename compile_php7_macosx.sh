@@ -62,16 +62,18 @@ fi
 if [ -x $SrcDir ] && [ -w $DesPDir ]; then
     # executable source dir and writable destination dir
     cd $SrcDir
-    sudo make clean
+    if [ -f $SrcDir/Makefile ]; then
+        sudo make clean
+    fi
     if [ ! -f $DesDir/bin/php ] && [ ! -f $desDir/bin/phpize ] && [ ! -f $DesDir/bin/php-config ]; then
         sudo ./buildconf --force
         # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql 
         if [ -f $ApxsPath ] && [ "$WithApxs" == "$ApxsPath" ]; then
             echo "with apxs2"
-            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-apxs2=$ApxsPath --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
+            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-apxs2=$ApxsPath --with-iconv-dir=/usr/local/opt/libiconv --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
         else
             echo "without apxs2"
-            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
+            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-iconv-dir=/usr/local/opt/libiconv  --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
         fi
         if [ ! -f $SrcDir/Makefile ]; then
             echo "Makefile is not found"
@@ -93,14 +95,33 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
             #if [ $ExtName != "mssql" ] && [ $ExtName != "com_dotnet" ]; then
                 echo $ExtName
                 cd $SrcDir/ext/$ExtName
-                sudo make clean
+                if [ -f $SrcDir/ext/$ExtName/Makefile ]; then
+                    sudo make clean
+                fi
                 # there is no config.m4 but config0.m4 in openssl,zlib extension dir
                 if [ -f "${SrcDir}/ext/${ExtName}/config0.m4" ] && [ ! -f "${SrcDir}/ext/${ExtName}/config.m4" ]; then
                     sudo cp $SrcDir/ext/$ExtName/config0.m4 $SrcDir/ext/$ExtName/config.m4
                 fi
                 sudo $DesDir/bin/phpize
+
                 if [ $ExtName == "gd" ]; then
                     sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf 
+                elif [ $ExtName == "gettext" ]; then
+                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-gettext=/usr/local/opt/gettext
+                elif [ $ExtName == "intl" ]; then
+                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-icu-dir=/usr/local/opt/icu4c
+                elif [ $ExtName == "openssl" ]; then
+                    if [ -d "/usr/local/opt/openssl" ]; then
+                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-openssl=/usr/local/opt/openssl
+                    else
+                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config 
+                    fi
+                elif [ $ExtName == "curl" ]; then
+                    if [ -d "/usr/local/opt/curl" ]; then
+                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-curl=/usr/local/opt/curl 
+                    else
+                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config 
+                    fi
                 else
                     sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config
                 fi
