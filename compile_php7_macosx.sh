@@ -67,14 +67,24 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
     fi
     if [ ! -f $DesDir/bin/php ] && [ ! -f $desDir/bin/phpize ] && [ ! -f $DesDir/bin/php-config ]; then
         sudo ./buildconf --force
-        # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql 
+        # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql
+        ConfArgs="--prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd   --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter "
         if [ -f $ApxsPath ] && [ "$WithApxs" == "$ApxsPath" ]; then
             echo "with apxs2"
-            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-apxs2=$ApxsPath --with-iconv-dir=/usr/local/opt/libiconv --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
+            ConfArgs="${ConfArgs} --with-apxs2=$ApxsPath"
         else
             echo "without apxs2"
-            sudo ./configure --prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd --with-iconv-dir=/usr/local/opt/libiconv  --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter 
         fi
+        if [ -d "/usr/local/opt" ]; then
+            echo "dir /usr/local/opt exists."
+            if [ -d "/usr/local/opt/libiconv" ]; then
+                ConfArgs="${ConfArgs} --with-iconv-dir=/usr/local/opt/libiconv"
+                ConfArgs="${ConfArgs} --with-iconv=/usr/local/opt/libiconv"
+            fi
+        fi
+        echo "Config args:"
+        echo "${ConfArgs}"
+        sudo ./configure ${ConfArgs}
         if [ ! -f $SrcDir/Makefile ]; then
             echo "Makefile is not found"
             exit 1
