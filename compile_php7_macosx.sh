@@ -68,7 +68,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
     if [ ! -f $DesDir/bin/php ] && [ ! -f $desDir/bin/phpize ] && [ ! -f $DesDir/bin/php-config ]; then
         sudo ./buildconf --force
         # enable mysqllnd for compile ext mysql and mysqli and pdo_mysql
-        ConfArgs="--prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd   --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter "
+        ConfArgs="--prefix=$DesDir --enable-cli --enable-cgi --enable-fpm --enable-mysqlnd   --enable-xml --enable-libxml --enable-xmlreader --enable-xmlwriter --without-iconv"
         if [ -f $ApxsPath ] && [ "$WithApxs" == "$ApxsPath" ]; then
             echo "with apxs2"
             ConfArgs="${ConfArgs} --with-apxs2=$ApxsPath"
@@ -77,10 +77,6 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
         fi
         if [ -d "/usr/local/opt" ]; then
             echo "dir /usr/local/opt exists."
-            if [ -d "/usr/local/opt/libiconv" ]; then
-                ConfArgs="${ConfArgs} --with-iconv-dir=/usr/local/opt/libiconv"
-                ConfArgs="${ConfArgs} --with-iconv=/usr/local/opt/libiconv"
-            fi
         fi
         echo "Config args:"
         echo "${ConfArgs}"
@@ -113,28 +109,33 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                     sudo cp $SrcDir/ext/$ExtName/config0.m4 $SrcDir/ext/$ExtName/config.m4
                 fi
                 sudo $DesDir/bin/phpize
-
+                ConfArgs=" --with-php-config=${DesDir}/bin/php-config"
                 if [ $ExtName == "gd" ]; then
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf 
+                    ConfArgs="${ConfArgs} --with-freetype-dir --with-jpeg-dir --enable-gd-native-ttf "
                 elif [ $ExtName == "gettext" ]; then
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-gettext=/usr/local/opt/gettext
+                    if [ -d "/usr/local/opt/gettext" ]; then
+                        ConfArgs="${ConfArgs} --with-gettext=/usr/local/opt/gettext"
+                    fi
                 elif [ $ExtName == "intl" ]; then
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-icu-dir=/usr/local/opt/icu4c
+                    if [ -d "/usr/local/opt/icu4c" ]; then
+                        ConfArgs="${ConfArgs}  --with-icu-dir=/usr/local/opt/icu4c"
+                    fi
                 elif [ $ExtName == "openssl" ]; then
                     if [ -d "/usr/local/opt/openssl" ]; then
-                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-openssl=/usr/local/opt/openssl
-                    else
-                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config 
+                        ConfArgs="${ConfArgs} --with-openssl=/usr/local/opt/openssl"
+                    fi
+                elif [ $ExtName == "iconv" ]; then
+                    if [ -d "/usr/local/opt/libiconv" ]; then
+                        ConfArgs="${ConfArgs} --with-iconv=/usr/local/opt/libiconv"
                     fi
                 elif [ $ExtName == "curl" ]; then
                     if [ -d "/usr/local/opt/curl" ]; then
-                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config --with-curl=/usr/local/opt/curl 
-                    else
-                        sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config 
+                        ConfArgs="${ConfArgs}  --with-curl=/usr/local/opt/curl "
                     fi
                 else
-                    sudo ./configure --prefix=$DesDir --with-php-config=$DesDir/bin/php-config
+                    echo "else"
                 fi
+                sudo ./configure ${ConfArgs}
                 if [ -f $SrcDir/ext/$ExtName/Makefile ]; then
                     sudo make -j ${TNum} && sudo make install 
                     sudo make clean
@@ -157,7 +158,7 @@ if [ -x $SrcDir ] && [ -w $DesPDir ]; then
                         if [ "${ExtFileName}" = "opcache" ] || [ "${ExtFileName}" = "xdebug" ]; then
                             echo ";zend_extension=${ExtDirPath}${ExtFileName}.so" >> "${PHPExtsIni}"
                         else
-                            echo ";extension=${ExtFileName}.so" >> "${PHPExtsIni}"
+                            echo ";extension=${ExtFileName}" >> "${PHPExtsIni}"
                         fi
                     else
                         echo "${s} is loaded..."
