@@ -23,23 +23,14 @@
   --with-http_perl_module=dynamic 
   --with-mail=dynamic 
   --with-mail_ssl_module 
-  --without-mail_pop3_module 
-  --without-mail_imap_module 
-  --without-mail_smtp_module 
-  --with-stream 
   --with-stream=dynamic 
-  --with-stream_ssl_module 
-  --with-stream_realip_module 
+  --with-stream_ssl_module  
+  --with-stream_realip_module  
+  --with-stream_geoip_module  
   --with-stream_geoip_module 
-  --with-stream_geoip_module=dynamic 
   --with-stream_ssl_preread_module 
-  --with-google_perftools_module 
-  --with-cpp_test_module 
   --with-pcre 
   --with-pcre-jit 
-  --with-zlib=/usr/local/opt/zlib 
-  --with-zlib-asm=CPU 
-  --with-libatomic 
-  --with-libatomic 
+  --with-libatomic=/usr/local/opt/libatomic_ops
   --with-openssl=/usr/local/opt/openssl 
   --with-http_xslt_module=dynamic 
